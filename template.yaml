@@ -503,24 +503,24 @@ Resources:
           Value: !Sub 'codepipeline-cicdlab-artifact-store'
 
   
-#   CodeDeployServiceRole:
-#     Type: AWS::IAM::Role
-#     Properties:
-#       RoleName: !Sub 'cicdlab-CodeDeployRole'
-#       AssumeRolePolicyDocument:
-#         Statement:
-#           - Effect: Allow
-#             Principal:
-#               Service: [codedeploy.amazonaws.com]
-#             Action: ['sts:AssumeRole']
-#       ManagedPolicyArns:
-#         - arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'cicdlab-CodeDeployRole'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [codedeploy.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS
 
-#   CodeDeployApplication:
-#     Type: AWS::CodeDeploy::Application
-#     Properties:
-#       ApplicationName: !Sub 'cicdlab-App'
-#       ComputePlatform: ECS
+  CodeDeployApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: !Sub 'cicdlab-App'
+      ComputePlatform: ECS
 
 #   CodeDeployDeploymentGroup:
 #     Type: AWS::CodeDeploy::DeploymentGroup
@@ -601,46 +601,46 @@ Resources:
 #           RoleArn: !GetAtt EventBridgeRole.Arn
 #           Id: CodePipelineTarget
 
-#   CodePipelineServiceRole:
-#     Type: AWS::IAM::Role
-#     Properties:
-#       RoleName: !Sub 'cicdlab-CodePipelineRole'
-#       AssumeRolePolicyDocument:
-#         Version: 2012-10-17
-#         Statement:
-#           - Effect: Allow
-#             Principal:
-#               Service: codepipeline.amazonaws.com
-#             Action: sts:AssumeRole
-#       Path: "/"
-#       Policies:
-#         - PolicyName: CodePipelinePolicy
-#           PolicyDocument:
-#             Version: 2012-10-17
-#             Statement:
-#               # S3 permissions for deployment artifacts
-#               - Effect: Allow
-#                 Action:
-#                   - s3:*
-#                   - ecs:*
-#                   - codedeploy:*
-#                 Resource: '*'
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'cicdlab-CodePipelineRole'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: CodePipelinePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              # S3 permissions for deployment artifacts
+              - Effect: Allow
+                Action:
+                  - s3:*
+                  - ecs:*
+                  - codedeploy:*
+                Resource: '*'
 
-#               # ECR read access
-#               - Effect: Allow
-#                 Action:
-#                   - ecr:DescribeImages
-#                 Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${EcrRepository}
+              # ECR read access
+              - Effect: Allow
+                Action:
+                  - ecr:DescribeImages
+                Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${EcrRepository}
 
-#               - Effect: Allow
-#                 Action:
-#                   - iam:PassRole
-#                 Resource: '*'
-#                 Condition:
-#                   StringEquals:
-#                     iam:PassedToService:
-#                       - ecs-tasks.amazonaws.com
-#                       - codedeploy.amazonaws.com
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    iam:PassedToService:
+                      - ecs-tasks.amazonaws.com
+                      - codedeploy.amazonaws.com
                 
 
 #   CodePipeline:
@@ -701,29 +701,29 @@ Resources:
 #       ScalableDimension: ecs:service:DesiredCount
 #       ServiceNamespace: ecs
 
-#   ApplicationAutoScalingRole:
-#     Type: AWS::IAM::Role
-#     Properties:
-#       AssumeRolePolicyDocument:
-#         Version: "2012-10-17"
-#         Statement:
-#           - Effect: Allow
-#             Principal:
-#               Service: application-autoscaling.amazonaws.com
-#             Action: sts:AssumeRole
-#       Policies:
-#         - PolicyName: ApplicationAutoScalingPolicy
-#           PolicyDocument:
-#             Version: "2012-10-17"
-#             Statement:
-#               - Effect: Allow
-#                 Action:
-#                   - iam:PassRole
-#                   - ecs:UpdateService
-#                   - ecs:DescribeServices
-#                   - cloudwatch:PutMetricAlarm
-#                   - cloudwatch:DescribeAlarms
-#                 Resource: "*"
+  ApplicationAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: application-autoscaling.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ApplicationAutoScalingPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                  - ecs:UpdateService
+                  - ecs:DescribeServices
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:DescribeAlarms
+                Resource: "*"
 
 #   EcsCpuScalingPolicy:
 #     Type: AWS::ApplicationAutoScaling::ScalingPolicy
