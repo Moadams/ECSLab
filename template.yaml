@@ -209,12 +209,13 @@ Resources:
       SubnetId: !Ref PrivateSubnet2
       RouteTableId: !Ref PrivateRouteTable2
 
-#   # ------------------------------------------------------------#
-#   #  Security Groups                                            #
-#   # ------------------------------------------------------------#
+  # ------------------------------------------------------------#
+  #  Security Groups                                            #
+  # ------------------------------------------------------------#
   AlbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupName: !Sub 'cicdlab-ALB-SG'
       GroupDescription: Security group for the ALB.
       VpcId: !Ref VPC
       SecurityGroupIngress:
@@ -229,6 +230,7 @@ Resources:
   EcsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupName: !Sub 'cicdlab-ECS-SG'
       GroupDescription: Security group for ECS tasks.
       VpcId: !Ref VPC
       SecurityGroupIngress:
@@ -240,9 +242,9 @@ Resources:
         - Key: Name
           Value: !Sub 'cicdlab-ECS-SG'
   
-  # # ------------------------------------------------------------#
-  # #  ECS & Fargate                                              #
-  # # ------------------------------------------------------------#
+  # ------------------------------------------------------------#
+  #  ECS & Fargate                                              #
+  # ------------------------------------------------------------#
   EcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -282,6 +284,16 @@ Resources:
               - ecr:UploadLayerPart
               - ecr:CompleteLayerUpload
   
+  CodePipelineBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'codepipeline-cicdlab-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Name
+          Value: !Sub 'codepipeline-cicdlab-artifact-store'
+
   GitHubOidcProvider:
     Type: AWS::IAM::OIDCProvider
     Properties:
@@ -378,6 +390,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/ecs/cicdlab'
+      RetentionInDays: 14
 
   EcsTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -414,6 +427,7 @@ Resources:
           Environment:
             - Name: SPRING_PROFILES_ACTIVE
               Value: production
+
   EcsService:
     Type: AWS::ECS::Service
     DependsOn:
@@ -516,16 +530,6 @@ Resources:
 #   # ------------------------------------------------------------#
 #   #  CI/CD Pipeline and CodeDeploy                              #
 #   # ------------------------------------------------------------#
-  CodePipelineBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub 'codepipeline-cicdlab-${AWS::AccountId}'
-      VersioningConfiguration:
-        Status: Enabled
-      Tags:
-        - Key: Name
-          Value: !Sub 'codepipeline-cicdlab-artifact-store'
-
   
   CodeDeployServiceRole:
     Type: AWS::IAM::Role
@@ -548,6 +552,7 @@ Resources:
 
   CodeDeployDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
+    DependsOn: ECSService
     Properties:
       ApplicationName: !Ref CodeDeployApplication
       DeploymentGroupName: !Sub 'cicdlab-DG'
@@ -673,6 +678,7 @@ Resources:
 
   EventBridgeRole:
     Type: AWS::IAM::Role
+    DependsOn: CodePipeline
     Properties:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
