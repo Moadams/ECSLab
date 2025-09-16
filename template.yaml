@@ -442,14 +442,18 @@ Resources:
 
   TargetGroupBlue:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: Alb
     Properties:
-      Name: !Sub "cicdlab-tg-blue"
+      Name: "cicdlab-tg-blue"
       Port: 8080
       Protocol: HTTP
       VpcId: !Ref VPC
       TargetType: ip
-      HealthCheckIntervalSeconds: 30
       HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
       HealthCheckPort: traffic-port
       Matcher:
         HttpCode: 200-399
@@ -469,9 +473,10 @@ Resources:
 
   AlbListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn: TargetGroupBlue
     Properties:
       LoadBalancerArn: !Ref Alb
-      Port: 8080
+      Port: 80
       Protocol: HTTP
       DefaultActions:
         - Type: forward
