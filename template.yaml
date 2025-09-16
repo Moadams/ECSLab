@@ -263,6 +263,7 @@ Resources:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: !Sub 'cicdlab-repo'
+      ImageTagMutability: MUTABLE
       ImageScanningConfiguration:
         ScanOnPush: true
       Tags:
@@ -500,6 +501,10 @@ Resources:
       VpcId: !Ref VPC
       TargetType: ip
       HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
       Matcher:
         HttpCode: 200-399
 
@@ -598,13 +603,11 @@ Resources:
             Principal:
               Service: codepipeline.amazonaws.com
             Action: sts:AssumeRole
-      Path: "/"
       Policies:
         - PolicyName: CodePipelinePolicy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              # S3 permissions for deployment artifacts
               - Effect: Allow
                 Action:
                   - s3:*
@@ -622,11 +625,6 @@ Resources:
                 Action:
                   - iam:PassRole
                 Resource: '*'
-                Condition:
-                  StringEquals:
-                    iam:PassedToService:
-                      - ecs-tasks.amazonaws.com
-                      - codedeploy.amazonaws.com
                 
 
   CodePipeline:
@@ -688,7 +686,7 @@ Resources:
               Service: events.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: AllowStartPipelineExecution
+        - PolicyName: StartPipelineExecution
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
