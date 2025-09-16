@@ -405,7 +405,7 @@ Resources:
       ServiceName: !Sub 'cicd-service'
       TaskDefinition: !Ref EcsTaskDefinition
       LaunchType: FARGATE
-      DesiredCount: 1
+      DesiredCount: 0
       DeploymentController:             
         Type: CODE_DEPLOY
       NetworkConfiguration:
@@ -458,7 +458,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Name: !Sub "cicdlab-tg-green"
-      Port: 80
+      Port: 8080
       Protocol: HTTP
       VpcId: !Ref VPC
       TargetType: ip
@@ -471,7 +471,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref Alb
-      Port: 80
+      Port: 8080
       Protocol: HTTP
       DefaultActions:
         - Type: forward
