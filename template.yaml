@@ -552,7 +552,7 @@ Resources:
 
   CodeDeployDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
-    DependsOn: ECSService
+    DependsOn: EcsService
     Properties:
       ApplicationName: !Ref CodeDeployApplication
       DeploymentGroupName: !Sub 'cicdlab-DG'
