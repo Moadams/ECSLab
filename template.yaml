@@ -719,17 +719,17 @@ Resources:
   #         Id: CodePipelineTarget
 
 
-  # # Scalable target for the ECS service
-  EcsServiceScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: EcsService
-    Properties:
-      MaxCapacity: 4
-      MinCapacity: 1
-      ResourceId: !Sub service/cicdlab-Cluster/cicd-service 
-      RoleARN: !GetAtt ApplicationAutoScalingRole.Arn
-      ScalableDimension: ecs:service:DesiredCount
-      ServiceNamespace: ecs
+  # Scalable target for the ECS service
+  # EcsServiceScalableTarget:
+  #   Type: AWS::ApplicationAutoScaling::ScalableTarget
+  #   DependsOn: EcsService
+  #   Properties:
+  #     MaxCapacity: 4
+  #     MinCapacity: 1
+  #     ResourceId: !Sub service/cicdlab-Cluster/cicd-service 
+  #     RoleARN: !GetAtt ApplicationAutoScalingRole.Arn
+  #     ScalableDimension: ecs:service:DesiredCount
+  #     ServiceNamespace: ecs
 
   ApplicationAutoScalingRole:
     Type: AWS::IAM::Role
@@ -755,18 +755,18 @@ Resources:
                   - cloudwatch:DescribeAlarms
                 Resource: "*"
 
-  EcsCpuScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: !Sub "cicdlab-ecs-cpu-scaling"
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref EcsServiceScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 50.0
-        PredefinedMetricSpecification:
-          PredefinedMetricType: ECSServiceAverageCPUUtilization
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
+  # EcsCpuScalingPolicy:
+  #   Type: AWS::ApplicationAutoScaling::ScalingPolicy
+  #   Properties:
+  #     PolicyName: !Sub "cicdlab-ecs-cpu-scaling"
+  #     PolicyType: TargetTrackingScaling
+  #     ScalingTargetId: !Ref EcsServiceScalableTarget
+  #     TargetTrackingScalingPolicyConfiguration:
+  #       TargetValue: 50.0
+  #       PredefinedMetricSpecification:
+  #         PredefinedMetricType: ECSServiceAverageCPUUtilization
+  #       ScaleInCooldown: 60
+  #       ScaleOutCooldown: 60
 
 
 Outputs:
