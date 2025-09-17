@@ -429,34 +429,34 @@ Resources:
             - Name: SPRING_PROFILES_ACTIVE
               Value: production
 
-  EcsService:
-    Type: AWS::ECS::Service
-    DependsOn:
-      - AlbListener
-      - EcsTaskDefinition
-    Properties:
-      Cluster: !Ref EcsCluster
-      ServiceName: !Sub 'cicd-service'
-      TaskDefinition: !Ref EcsTaskDefinition
-      LaunchType: FARGATE
-      DesiredCount: 1
-      DeploymentController:             
-        Type: CODE_DEPLOY
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          Subnets:
-            - !Ref PrivateSubnet1
-            - !Ref PrivateSubnet2
-          SecurityGroups:
-            - !Ref EcsSecurityGroup
-          AssignPublicIp: DISABLED
-      LoadBalancers:
-        - ContainerName: !Sub 'cicdlab-container'
-          ContainerPort: !Ref ApplicationPort
-          TargetGroupArn: !Ref TargetGroupBlue
-      Tags:
-        - Key: Name
-          Value: !Sub 'cicd-service'
+  # EcsService:
+  #   Type: AWS::ECS::Service
+  #   DependsOn:
+  #     - AlbListener
+  #     - EcsTaskDefinition
+  #   Properties:
+  #     Cluster: !Ref EcsCluster
+  #     ServiceName: !Sub 'cicd-service'
+  #     TaskDefinition: !Ref EcsTaskDefinition
+  #     LaunchType: FARGATE
+  #     DesiredCount: 1
+  #     DeploymentController:             
+  #       Type: CODE_DEPLOY
+  #     NetworkConfiguration:
+  #       AwsvpcConfiguration:
+  #         Subnets:
+  #           - !Ref PrivateSubnet1
+  #           - !Ref PrivateSubnet2
+  #         SecurityGroups:
+  #           - !Ref EcsSecurityGroup
+  #         AssignPublicIp: DISABLED
+  #     LoadBalancers:
+  #       - ContainerName: !Sub 'cicdlab-container'
+  #         ContainerPort: !Ref ApplicationPort
+  #         TargetGroupArn: !Ref TargetGroupBlue
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'cicd-service'
 
   # # ------------------------------------------------------------#
   # #  Application Load Balancer (ALB)                            #
@@ -521,7 +521,7 @@ Resources:
           TargetGroupArn: !Ref TargetGroupBlue
 
 
-#   # Test listener
+  # Test listener
   AlbTestListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -532,9 +532,9 @@ Resources:
       Port: 9000                  
       Protocol: HTTP
   
-#   # ------------------------------------------------------------#
-#   #  CI/CD Pipeline and CodeDeploy                              #
-#   # ------------------------------------------------------------#
+  # ------------------------------------------------------------#
+  #  CI/CD Pipeline and CodeDeploy                              #
+  # ------------------------------------------------------------#
   
   CodeDeployServiceRole:
     Type: AWS::IAM::Role
@@ -555,41 +555,41 @@ Resources:
       ApplicationName: !Sub 'cicdlab-App'
       ComputePlatform: ECS
 
-  CodeDeployDeploymentGroup:
-    Type: AWS::CodeDeploy::DeploymentGroup
-    DependsOn: EcsService
-    Properties:
-      ApplicationName: !Ref CodeDeployApplication
-      DeploymentGroupName: !Sub 'cicdlab-DG'
-      DeploymentConfigName: CodeDeployDefault.ECSAllAtOnce
-      ServiceRoleArn: !GetAtt CodeDeployServiceRole.Arn
-      AutoRollbackConfiguration:
-        Enabled: true
-        Events:
-          - DEPLOYMENT_FAILURE
-      DeploymentStyle:
-        DeploymentOption: WITH_TRAFFIC_CONTROL
-        DeploymentType: BLUE_GREEN
-      ECSServices:
-        - ClusterName: !Ref EcsCluster
-          ServiceName: !GetAtt EcsService.Name
-      LoadBalancerInfo:
-        TargetGroupPairInfoList:
-          - TargetGroups:
-              - Name: cicdlab-tg-blue
-              - Name: cicdlab-tg-green
-            ProdTrafficRoute:
-              ListenerArns:
-                - !Ref AlbListener
-            TestTrafficRoute:
-              ListenerArns:
-                - !Ref AlbTestListener
-      BlueGreenDeploymentConfiguration:   
-        TerminateBlueInstancesOnDeploymentSuccess:
-          Action: TERMINATE
-          TerminationWaitTimeInMinutes: 5
-        DeploymentReadyOption:
-          ActionOnTimeout: CONTINUE_DEPLOYMENT
+  # CodeDeployDeploymentGroup:
+  #   Type: AWS::CodeDeploy::DeploymentGroup
+  #   DependsOn: EcsService
+  #   Properties:
+  #     ApplicationName: !Ref CodeDeployApplication
+  #     DeploymentGroupName: !Sub 'cicdlab-DG'
+  #     DeploymentConfigName: CodeDeployDefault.ECSAllAtOnce
+  #     ServiceRoleArn: !GetAtt CodeDeployServiceRole.Arn
+  #     AutoRollbackConfiguration:
+  #       Enabled: true
+  #       Events:
+  #         - DEPLOYMENT_FAILURE
+  #     DeploymentStyle:
+  #       DeploymentOption: WITH_TRAFFIC_CONTROL
+  #       DeploymentType: BLUE_GREEN
+  #     ECSServices:
+  #       - ClusterName: !Ref EcsCluster
+  #         ServiceName: !GetAtt EcsService.Name
+  #     LoadBalancerInfo:
+  #       TargetGroupPairInfoList:
+  #         - TargetGroups:
+  #             - Name: cicdlab-tg-blue
+  #             - Name: cicdlab-tg-green
+  #           ProdTrafficRoute:
+  #             ListenerArns:
+  #               - !Ref AlbListener
+  #           TestTrafficRoute:
+  #             ListenerArns:
+  #               - !Ref AlbTestListener
+  #     BlueGreenDeploymentConfiguration:   
+  #       TerminateBlueInstancesOnDeploymentSuccess:
+  #         Action: TERMINATE
+  #         TerminationWaitTimeInMinutes: 5
+  #       DeploymentReadyOption:
+  #         ActionOnTimeout: CONTINUE_DEPLOYMENT
   
 
   CodePipelineServiceRole:
@@ -627,96 +627,96 @@ Resources:
                 Resource: '*'
                 
 
-  CodePipeline:
-    Type: AWS::CodePipeline::Pipeline
-    Properties:
-      Name: !Sub 'cicdlab-Pipeline'
-      RoleArn: !GetAtt CodePipelineServiceRole.Arn
-      ArtifactStore:
-        Type: S3
-        Location: !Ref CodePipelineBucket
-      Stages:
-        # ---------------- Source Stage ----------------
-        - Name: Source
-          Actions:
-            - Name: EcrSource
-              ActionTypeId:
-                Category: Source
-                Owner: AWS
-                Provider: S3
-                Version: '1'
-              Configuration:
-                S3Bucket: !Ref CodePipelineBucket
-                S3ObjectKey: !Sub 'codepipeline-deployment-files.zip'
-                PollForSourceChanges: false
-              OutputArtifacts:
-                - Name: SourceArtifact
-              RunOrder: 1
+  # CodePipeline:
+  #   Type: AWS::CodePipeline::Pipeline
+  #   Properties:
+  #     Name: !Sub 'cicdlab-Pipeline'
+  #     RoleArn: !GetAtt CodePipelineServiceRole.Arn
+  #     ArtifactStore:
+  #       Type: S3
+  #       Location: !Ref CodePipelineBucket
+  #     Stages:
+  #       # ---------------- Source Stage ----------------
+  #       - Name: Source
+  #         Actions:
+  #           - Name: EcrSource
+  #             ActionTypeId:
+  #               Category: Source
+  #               Owner: AWS
+  #               Provider: S3
+  #               Version: '1'
+  #             Configuration:
+  #               S3Bucket: !Ref CodePipelineBucket
+  #               S3ObjectKey: !Sub 'codepipeline-deployment-files.zip'
+  #               PollForSourceChanges: false
+  #             OutputArtifacts:
+  #               - Name: SourceArtifact
+  #             RunOrder: 1
           
           
-        - Name: Deploy
-          Actions:
-            - Name: DeployToECS
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CodeDeployToECS
-                Version: '1'
-              InputArtifacts:
-                - Name: SourceArtifact
-              Configuration:
-                ApplicationName: !Ref CodeDeployApplication
-                DeploymentGroupName: !Ref CodeDeployDeploymentGroup
-                TaskDefinitionTemplateArtifact: SourceArtifact
-                TaskDefinitionTemplatePath: taskdef.json
-                AppSpecTemplateArtifact: SourceArtifact
-                AppSpecTemplatePath: appspec.yml
+  #       - Name: Deploy
+  #         Actions:
+  #           - Name: DeployToECS
+  #             ActionTypeId:
+  #               Category: Deploy
+  #               Owner: AWS
+  #               Provider: CodeDeployToECS
+  #               Version: '1'
+  #             InputArtifacts:
+  #               - Name: SourceArtifact
+  #             Configuration:
+  #               ApplicationName: !Ref CodeDeployApplication
+  #               DeploymentGroupName: !Ref CodeDeployDeploymentGroup
+  #               TaskDefinitionTemplateArtifact: SourceArtifact
+  #               TaskDefinitionTemplatePath: taskdef.json
+  #               AppSpecTemplateArtifact: SourceArtifact
+  #               AppSpecTemplatePath: appspec.yml
                 
-              RunOrder: 1
+  #             RunOrder: 1
 
-  EventBridgeRole:
-    Type: AWS::IAM::Role
-    DependsOn: CodePipeline
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: events.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: StartPipelineExecution
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action: codepipeline:StartPipelineExecution
-                Resource: !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}
+  # EventBridgeRole:
+  #   Type: AWS::IAM::Role
+  #   DependsOn: CodePipeline
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service: events.amazonaws.com
+  #           Action: sts:AssumeRole
+  #     Policies:
+  #       - PolicyName: StartPipelineExecution
+  #         PolicyDocument:
+  #           Version: '2012-10-17'
+  #           Statement:
+  #             - Effect: Allow
+  #               Action: codepipeline:StartPipelineExecution
+  #               Resource: !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}
 
-  EventBridgeRule:
-    Type: AWS::Events::Rule
-    Properties:
-      Name: !Sub 'EcrImagePush-Rule-cicdlab'
-      Description: Triggers CodePipeline on new ECR image push.
-      EventPattern:
-        source:
-          - aws.ecr
-        detail-type:
-          - 'ECR Image Action'
-        detail:
-          repository-name:
-            - !Ref EcrRepository
-          action-type:
-            - 'PUSH'
-          result:
-            - 'SUCCESS'
-          image-tag:
-            - 'latest'
-      Targets:
-        - Arn: !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}
-          RoleArn: !GetAtt EventBridgeRole.Arn
-          Id: CodePipelineTarget
+  # EventBridgeRule:
+  #   Type: AWS::Events::Rule
+  #   Properties:
+  #     Name: !Sub 'EcrImagePush-Rule-cicdlab'
+  #     Description: Triggers CodePipeline on new ECR image push.
+  #     EventPattern:
+  #       source:
+  #         - aws.ecr
+  #       detail-type:
+  #         - 'ECR Image Action'
+  #       detail:
+  #         repository-name:
+  #           - !Ref EcrRepository
+  #         action-type:
+  #           - 'PUSH'
+  #         result:
+  #           - 'SUCCESS'
+  #         image-tag:
+  #           - 'latest'
+  #     Targets:
+  #       - Arn: !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}
+  #         RoleArn: !GetAtt EventBridgeRole.Arn
+  #         Id: CodePipelineTarget
 
 
   # # Scalable target for the ECS service
@@ -794,8 +794,8 @@ Outputs:
     Export:
       Name: !Sub 'cicdlab-ECS-Cluster-Name'
 
-  EcsServiceName:
-    Description: The name of the ECS service.
-    Value: !Ref EcsService
-    Export:
-      Name: !Sub 'cicdlab-ECS-Service-Name'
+  # EcsServiceName:
+  #   Description: The name of the ECS service.
+  #   Value: !Ref EcsService
+  #   Export:
+  #     Name: !Sub 'cicdlab-ECS-Service-Name'
